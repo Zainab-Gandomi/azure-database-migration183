@@ -7,6 +7,25 @@
         - [Schema Migration](#schema-migration)
         - [Data Migration](#data-migration)
         - [Validate Migration Success](#validate-migration-success)
+3. [Data Backup and Restore](#data-backup-and-restore)
+    - [Backup the On-Premise Database](#backup-the-on-premise-database)
+    - [Upload Backup to Blob Storage](#upload-backup-to-blob-storage)
+    - [Restore Databse on Development Environmet](#restore-databse-on-development-environmet)
+    - [Automate backup for Development Database](#automate-backup-for-development-database)
+        - [Create the SQL Server Credential](#create-the-sql-server-credential)
+        - [Create Maintenance Plans](#create-maintenance-plans)
+4. [Disaster Recovery Simulation](#disaster-recovery-simulation)
+    - [Mimic Data Loss in Production Environment](#mimic-data-loss-in-production-environment)
+    - [Restore Database from Azure SQL Database Backup](#restore-database-from-azure-sql-database-backup)
+5. [Geo Replication and Failover](#geo-replication-and-failover)
+    - [Set Up Geo-replication for Azure SQL Database](#set-up-geo-replication-for-azure-sql-database)
+    - [Test Failover and Failback](#test-failover-and-failback)
+6. [Microsoft Entra Directory Integration](#microsoft-entra-directory-integration)
+    - [Configure Microsoft Entra ID for Azure SQL Database](#configure-microsoft-entra-id-for-azure-sql-database)
+    - [Create DB Reader User](#create-db-reader-user)
+
+
+
 
 
 
@@ -160,9 +179,10 @@ Open SSMS and connect to your SQL Server instance. Right-click on the server nam
 
 '''
 
-CREATE CREDENTIAL CredentialToAutomateBackup
-WITH IDENTITY = 'aicoreproject08122023',
-SECRET = 'Access Key';
+        CREATE CREDENTIAL CredentialToAutomateBackup
+        WITH IDENTITY = 'aicoreproject08122023',
+        SECRET = 'Access Key';
+
 
 '''
  
@@ -173,6 +193,10 @@ After creating the SQL Server Credential, should be able to see this under the S
 ![Screenshot (646)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/82f56cc3-f046-450d-a146-2e45501fc874)
 
 With the SQL Server Credential in place, SQL Server will be able to access the Azure Storage Account using the secret access key.
+
+
+#### Create Maintenance Plans
+
 
 To continue creating a management task in SSMS for periodic backups and configure it to store backups in Azure Blob Storage, in the Object Explorer, expand the *Management* node, right-click on *Maintenance Plans*, and select *Maintenance Plan Wizard*.
 
@@ -195,18 +219,60 @@ Following photo shows that the maintenance plan executes successfully.
 ![Screenshot (652)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/b5ab5174-88f7-41b3-87ec-1d0e0981420f)
 
 
+## Disaster Recovery Simulation
+
+Disaster recovery is a critical aspect of any organization's data strategy. It refers to the set of processes and tools implemented to safeguard data, applications, and systems, enabling rapid recovery and continuity of operations in the face of disruptive events. By having a robust disaster recovery plan, businesses can minimize downtime, ensure data integrity, and maintain their ability to serve customers without significant interruptions.
+
+
+### Mimic Data Loss in Production Environment
+
+To perform a disaster recovery simulation, intentionaly mimiking data loss in production environment.
+
+Deliberately remove critical data from production database to replicate a scenario where data integrity is compromised.
+
+first senario: There is *Production.ProductCostHistory* table and we want to update the price of the product with ProductID = 708 but by accident we update the price of the ProductID = 707.
+
+![Screenshot (661)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/c63430be-052a-4faa-9fc6-6b18dd0a1857)
+
+![Screenshot (662)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/6763a074-8b24-4ac0-b243-cfc287f9eb9d)
+
+Other senario: We need to delete the 100 of top row data but instead we delete 1000 of them on *dbo.DatabaseLog* table.
+
+![Screenshot (666)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/56ff4bc8-9b19-4191-84ae-0f353e86620c)
+
+
+
+### Restore Database from Azure SQL Database Backup
+
+Navigate to the Azure portal and from the Azure SQL Database dashboard, locate and select the target database that needs restoration. From the SQL Database Home Page select the *Restore* option at the top bar on the page.
+
+Then choose the restore point that represents the point in time before the data loss occurred. select a restore point ( for this project is on the same day one hours before the data loss has occurred) as no data has been added to the database since then, however if this is an active database that gets updated real-time would have to choose the closest point in time before data loss has occurred for minimal data loss.
+
+![Screenshot (667)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/4447135e-d0c7-4f3c-94c7-726b6097d73e)
+
+Next, choose the new Database name, After that just click *Review + create* and finally click *Create*. Azure will begin restoring the selected backup to the specified destination. This will take a couple of minutes to complete.
+
+To verify the database has been restored to a correct point in time, before the data loss has occurred, will establish a connection to it using Azure Data Studio.
+
+![Screenshot (668)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/c948d87e-3a04-42af-9437-ad33fe064e64)
 
 
 
 
 
+## Geo Replication and Failover
+
+### Set Up Geo-replication for Azure SQL Database
+
+### Test Failover and Failback
 
 
 
+## Microsoft Entra Directory Integration
 
+### Configure Microsoft Entra ID for Azure SQL Database
 
-
-
+### Create DB Reader User
 
 
 
