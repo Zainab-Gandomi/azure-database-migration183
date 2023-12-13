@@ -19,7 +19,7 @@
     - [Restore Database from Azure SQL Database Backup](#restore-database-from-azure-sql-database-backup)
 5. [Geo Replication and Failover](#geo-replication-and-failover)
     - [Set Up Geo-replication for Azure SQL Database](#set-up-geo-replication-for-azure-sql-database)
-    - [Test Failover and Failback](#test-failover-and-failback)
+    - [Test Failover and Tailback](#test-failover-and-tailback)
 6. [Microsoft Entra Directory Integration](#microsoft-entra-directory-integration)
     - [Configure Microsoft Entra ID for Azure SQL Database](#configure-microsoft-entra-id-for-azure-sql-database)
     - [Create DB Reader User](#create-db-reader-user)
@@ -257,14 +257,65 @@ To verify the database has been restored to a correct point in time, before the 
 ![Screenshot (668)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/c948d87e-3a04-42af-9437-ad33fe064e64)
 
 
-
+To verify that a database has been restored correctly, select the *dbo.DatabaseLog* table and confirm that the number of rows is 1596, matching the number of rows before they were deleted.
 
 
 ## Geo Replication and Failover
 
+Geo-replication enhances data protection by establishing a synchronized copy of production Azure SQL Database in a secondary region. This strategic redundancy ensures continuous data availability and minimizes potential downtime during unforeseen disruptions.
+
+A planned failover to the secondary region allows to assess the availability and consistency of the secondary database. This process provides valuable insights into the failover mechanism and its impact on data ecosystem.
+
+
 ### Set Up Geo-replication for Azure SQL Database
 
-### Test Failover and Failback
+Follow these steps to configure and set up georeplication for Azure SQL Database:
+
+ - Navigate to the Azure portal and from the Azure SQL Database dashboard, select the primary database (*restored production database*) to replicate.
+ - In the left-hand menu of the primary database blade, click on *Replicas* under *Data Management*.
+ - Click on *Create replica* to begin the setup process. In the Geo Replica menu, first have to create a new SQL Server and this server will should be located in a region geographically distant from the primary region to ensure data redundancy.
+ - Select authentication method and create the server 
+ - Click *Review + create* and then click on *Create* to initiate the replication process.
+
+![Screenshot (671)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/3cfee1a9-08c3-43f6-aa61-cebec5fdbc83)
+
+
+### Test Failover and Tailback
+
+Failover is the process of switching the workload from the primary region to the secondary region in a georeplicated environment
+
+It is typically performed during planned maintenance or in response to a disaster in the primary region. Failover ensures high availability and business continuity by allowing applications to continue running from the secondary region.
+
+A test failover is a non-disruptive way to verify the functionality of the failover environment without impacting the production workload. Follow these steps to initiate a test failover to the secondary region:
+
+ - Navigate to the Azure portal and from the Azure SQL Database dashboard, select the SQL server associated with the primary database *production-database-restored* that want to failover (In this case, the database on UK South).
+ - Select *Failover groups* under the *Data management* pane, and then select Add group to create a new failover group.
+
+ - On the Failover group page enter a name for the failover group. Then for the Server select secondary server, not the server on which the primary database resides in.
+
+ - Now navigate to the Azure SQL Server in which your secondary/replication database resides in. The newly created failover group is under Failover groups.
+
+  Access the failover group page, should be able to see the following page, which indicates the two servers in the failover group and which is the primary and the secondary one:
+
+![Screenshot (676)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/e1cc4139-3ea7-4933-add0-c88732ef0124)
+
+
+To initiate a planned failover (without data loss), select Failover from the task pane to fail over the failover group containing the database. Then receive a warning about switching the secondary database to a primary role click Yes to continue here.
+
+Wait for the failover to complete and review which server is now primary and which server is secondary. If failover succeeded, the two servers should have swapped roles. Also can use the connection details of the secondary server to connect to the new primary database, and run tests to validate the database's functionality in the secondary region, ensuring that it is working as expected.
+
+![Screenshot (677)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/8cdf0099-acda-4ff7-b215-209690518caa)
+
+
+Tailback is the process of reverting the workload back to the primary region after a successful failover.
+
+Once the primary region is restored, the workload is switched back from the secondary region to the primary region, ensuring that the original production environment is reinstated.
+
+Select *Failover* again to fail the servers back to their original roles.
+
+
+By following these steps, can safely perform a test failover to verify disaster recovery environment's functionality and then perform a tailback to revert to the primary region. Testing these processes regularly ensures the readiness of disaster recovery plan and boosts confidence in organization's ability to handle unexpected incidents.
+
 
 
 
