@@ -321,9 +321,52 @@ By following these steps, can safely perform a test failover to verify disaster 
 
 ## Microsoft Entra Directory Integration
 
+As organizations increasingly embrace cloud-based solutions, the need for secure and seamless access management becomes paramount. Microsoft Entra ID is Microsoft's cloud-based identity and access management service, designed to help organizations manage and secure their users, applications, and data. When it comes to Azure resources, including Azure SQL Database, traditional username/password-based authentication may not provide the level of security and convenience required by modern cloud-based applications. That's where Microsoft Entra ID integration comes in.
+
+Integrating Microsoft Entra ID with Azure SQL Database offers a range of advantages that enhance security, simplify user management, and enable a more seamless user experience. This integration leverages the power of identity-based authentication and access control, providing a robust and scalable solution for managing database access in a multi-tenant cloud environment.
+
 ### Configure Microsoft Entra ID for Azure SQL Database
 
+The Microsoft Entra admin is a critical entity when configuring Microsoft Entra ID authentication for Azure SQL Database. The Microsoft Entra admin is responsible for managing access to the database and its resources. It can be an Microsoft Entra user or a security group defined within the Microsoft Entra ID directory.
+
+ - Navigate to the Azure portal and open the SQL Server that hosts primary database *production-database-restored* 
+ - Under the *Security* section, click on Microsoft Entra, this should redirect to the following page:
+
+![Screenshot (693)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/65ba5b31-f43d-424c-8f85-bbf70c707fd5)
+
+ - Click on Set admin to assign an Microsoft Entra user or group as the Microsoft Entra admin for the SQL Server. This admin will have elevated privileges to manage the server and its databases. In this example I will go to Users and select my user as the admin of the database
+
+![Screenshot (689)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/a05dee98-558f-4534-9ea8-20860e127a4c)
+
+
+ - Click Select to continue and Save to save the changes to SQL Server. Now the user Maya will the Microsoft Entra admin of this SQL Server.
+
+Let's test this by connecting to the primary database using Azure Data Studio.
+
+![Screenshot (691)](https://github.com/Zainab-Gandomi/azure-database-migration183/assets/79536268/b83e5d67-621d-4c50-a0f1-ae636e992d1e)
+
+
+Click the Connect button to establish the connection to Azure SQL Database. Once connected, you can explore the database, run queries, and manage the database objects using Azure Data Studio. As the admin account, will have the necessary privileges to perform administrative tasks on the database.
+
 ### Create DB Reader User
+
+In addition to the admin account, access can be granted to Azure SQL Database for specific Microsoft Entra users or groups. Microsoft Entra users can have varying levels of permissions, depending on their roles and responsibilities within organization.
+
+Navigate to the Azure portal and then to the Microsoft Entra ID homepage. Create a new user that will ultimately be assigned the db_datareader role. Select a suggestive name and Create a password for this user using the Let me create the password field.
+
+Open Azure Data Studio and connect to the desired database using the Microsoft Entra Admin credentials,Right-click on the server connection and select New Query to open the query editor.
+
+In the query editor, run the following SQL query to grant the db_datareader role to the DB_Reader user:
+
+'''
+
+        CREATE USER [DB_Reader_Zainab@aicoreusers.onmicrosoft.com] FROM EXTERNAL PROVIDER;
+        ALTER ROLE db_datareader ADD MEMBER [DB_Reader_Zainab@aicoreusers.onmicrosoft.com];
+
+'''
+
+
+
 
 
 
